@@ -1,8 +1,11 @@
 #include "xml/xml_parser.h"
+#include "string_utils.h"
 
-void skip_line(FILE *fptr)
+static FILE *file_ptr;
+
+void skip_line()
 {
-    while (fgetc(fptr) != '\n');
+    while (fgetc(file_ptr) != '\n');
 }
 
 char *remove_beg_spaces(const char *line_buffer, size_t line_size)
@@ -16,29 +19,90 @@ char *remove_beg_spaces(const char *line_buffer, size_t line_size)
     return line;
 }
 
-char *read_line(FILE *fptr)
+char *read_line()
 {
     fpos_t pos_1, pos_2;
-    fgetpos(fptr, &pos_1);
+    fgetpos(file_ptr, &pos_1);
 
-    char c = fgetc(fptr);
+    char c = fgetc(file_ptr);
     size_t line_size = 0;
 
     while (c != '\n') {
         line_size++;
-        c = fgetc(fptr);
+        c = fgetc(file_ptr);
     }
 
-    fgetpos(fptr, &pos_2);
-    fsetpos(fptr, &pos_1);
+    fgetpos(file_ptr, &pos_2);
+    fsetpos(file_ptr, &pos_1);
 
     char line_buffer[line_size + 1];
-    fgets(line_buffer, line_size + 1, fptr);
+    fgets(line_buffer, line_size + 1, file_ptr);
 
     char *line = remove_beg_spaces(line_buffer, line_size);
-    fsetpos(fptr, &pos_2);
+    fsetpos(file_ptr, &pos_2);
 
     return line;
+}
+
+char *extract_next_attr_name(const char *line, int *line_accumulator)
+{
+    size_t attr_name_size = 0;
+    int i = *line_accumulator;
+    while (line[i] != '=') {
+        i++;
+        attr_name_size++;
+    }
+
+    char *attr_name_buffer = malloc(sizeof(char) * attr_name_size + 1);
+    cpystr_nullc(attr_name_buffer, line + *line_accumulator, attr_name_size);
+
+    *line_accumulator += attr_name_size + 1;
+
+    return attr_name_buffer;
+}
+
+char *extract_next_attr_value(const char *line, int *line_accumulator)
+{
+    if (line[*line_accumulator] != '"') exit(1);
+    (*line_accumulator)++;
+
+    size_t attr_value_size = 0;
+    int i = *line_accumulator;
+    while (line[i] != '"') {
+        i++;
+        attr_value_size++;
+    }
+
+    char *attr_value_buffer = malloc(sizeof(char) * attr_value_size + 1);
+    cpystr_nullc(attr_value_buffer, line + *line_accumulator, attr_value_size);
+
+    *line_accumulator += attr_value_size + 1;
+
+    return attr_value_buffer;
+}
+
+void parse_tag(Node *node)
+{
+    Tag *tag = malloc(sizeof(Tag));
+
+    char *tag_line = read_line();
+    int line_accumulator = 0;
+
+    // always expects '<tag'
+    char ident_buffer[4];
+    cpystr_nullc(ident_buffer, tag_line, 4);
+    if (strcmp(ident_buffer, "<tag") != 0) exit(1);
+
+    line_accumulator += 4 + 1;
+
+    char *attr_name_buffer = extract_next_attr_name(tag_line, &line_accumulator);
+    char *attr_value_buffer = extract_next_attr_value(tag_line, &line_accumulator);
+
+    if (strcmp(attr_name_buffer, "k") == 0) {
+        tag->k = attr_value_buffer;
+    } else if (strcmp(attr_name_buffer, "v") == 0) {
+        tag->v = attr_value_buffer;
+    }
 }
 
 Node *parse_node(const char *line, int line_accumulator)
@@ -46,34 +110,8 @@ Node *parse_node(const char *line, int line_accumulator)
     Node *node = malloc(sizeof(Node));
 
     for (;;) {
-        size_t attr_size = 0;
-        int i = line_accumulator;
-        while (line[i] != '=') {
-            i++;
-            attr_size++;
-        }
-
-        char attr_name_buffer[attr_size];
-        cpystr_nullc(attr_name_buffer, line + line_accumulator, attr_size);
-
-        printf("name: %s\n", attr_name_buffer);
-
-        line_accumulator += attr_size + 1;
-
-        if (line[line_accumulator] != '"') exit(1);
-        line_accumulator++;
-
-        size_t attr_value_size = 0;
-        int j = line_accumulator;
-        while (line[j] != '"') {
-            j++;
-            attr_value_size++;
-        }
-
-        char attr_value_buffer[attr_value_size];
-        cpystr_nullc(attr_value_buffer, line + line_accumulator, attr_value_size);
-
-        line_accumulator += attr_value_size + 1;
+        char *attr_name_buffer = extract_next_attr_name(line, &line_accumulator);
+        char *attr_value_buffer = extract_next_attr_value(line, &line_accumulator);
 
         if (strcmp(attr_name_buffer, "id") == 0) {
             int id = atoi(attr_value_buffer);
@@ -89,10 +127,14 @@ Node *parse_node(const char *line, int line_accumulator)
             node->lon = lon;
         }
 
+        free(attr_name_buffer);
+        free(attr_value_buffer);
+
         if (line[line_accumulator] == '/') {
             break;
-        } else if (line[line_accumulator == '>']) {
-            // TODO
+        } else if (line[line_accumulator] == '>') {
+            parse_tag(node);
+            break;
         }
 
         line_accumulator++;
@@ -109,15 +151,13 @@ void *parse_type(const char *line, enum XmlType *type)
     while (line[ident_size] != ' ') ident_size++;
 
     char ident_buffer[ident_size];
-    memcpy(ident_buffer, line, ident_size);
+    cpystr_nullc(ident_buffer, line, ident_size);
 
     line_accumulator += ident_size + 1;
 
     if (strcmp(ident_buffer, "<node") == 0) {
         *type = NODE;
         return (void*) parse_node(line, line_accumulator);
-    } else if (strcmp(ident_buffer, "<tag") == 0) {
-        // TODO
     }
 
     return NULL;
@@ -131,26 +171,59 @@ void *parse_line(const char *line, enum XmlType *type)
 bool parse_xml(const char *file_name)
 {
     FILE *fptr = fopen(file_name, "r");
-    if (fptr == NULL) {
-        return false;
-    }
+    if (fptr == NULL) return false;
 
-    skip_line(fptr);
-    skip_line(fptr);
-    skip_line(fptr);
+    file_ptr = fptr;
+
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
+    /* skip_line(); */
 
     enum XmlType type;
-
     Node *nptr;
 
-    char *line = read_line(fptr);
+    char *line = read_line();
     void *parsed_line = parse_line(line, &type);
 
     switch (type) {
         case NODE:
             nptr = parsed_line;
-        case TAG:
-            // TODO
             break;
     }
 

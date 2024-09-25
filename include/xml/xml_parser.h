@@ -9,15 +9,22 @@
 #include <string_utils.h>
 
 enum XmlType {
-    NODE,
-    TAG
+    NODE
 };
+
+typedef struct Tag {
+    char *k;
+    char *v;
+} Tag;
 
 typedef struct Node {
     int id;
     int uid;
     float lat;
     float lon;
+
+    size_t tags_size;
+    Tag **tags;
 } Node;
 
 bool parse_xml(const char *file_name);
