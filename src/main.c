@@ -5,9 +5,9 @@ const char *error;
 
 int main(void)
 {
-    const char *file_name = "map.osm";
+    const char *file_name = "data.xml";
     if (!parse_xml(file_name)) {
-        error = "Coudn't load xml file";
+        error = "Couldn't load xml file";
         goto main_error;
     }
 

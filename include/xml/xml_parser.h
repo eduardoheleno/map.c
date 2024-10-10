@@ -9,7 +9,8 @@
 #include <string_utils.h>
 
 enum XmlType {
-    NODE
+    NODE,
+    UNKNOWN
 };
 
 typedef struct Tag {
@@ -18,10 +19,10 @@ typedef struct Tag {
 } Tag;
 
 typedef struct Node {
-    int id;
-    int uid;
-    float lat;
-    float lon;
+    unsigned long id;
+    unsigned long uid;
+    double lat;
+    double lon;
 
     size_t tags_size;
     Tag **tags;
