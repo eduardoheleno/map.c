@@ -126,6 +126,7 @@ void parse_tag(Node *node)
 Node *parse_node(const char *line, int line_accumulator)
 {
     Node *node = malloc(sizeof(Node));
+    node->tags = NULL;
     node->tags_size = 0;
 
     for (;;) {
@@ -188,7 +189,7 @@ void *parse_line(const char *line, enum XmlType *type)
     return parse_type(line, type);
 }
 
-bool parse_xml(const char *file_name)
+bool parse_xml(const char *file_name, NodeList *node_list)
 {
     FILE *fptr = fopen(file_name, "r");
     if (fptr == NULL) return false;
@@ -204,6 +205,8 @@ bool parse_xml(const char *file_name)
         switch (type) {
             case NODE:
                 nptr = parsed_line;
+                node_list->nodes = realloc(node_list->nodes, sizeof(Node*) * ++node_list->size);
+                node_list->nodes[node_list->size - 1] = nptr;
 
                 break;
             /* case UNKNOWN: */

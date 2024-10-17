@@ -24,10 +24,15 @@ typedef struct Node {
     double lat;
     double lon;
 
-    size_t tags_size;
     Tag **tags;
+    size_t tags_size;
 } Node;
 
-bool parse_xml(const char *file_name);
+typedef struct NodeList {
+    Node **nodes;
+    size_t size;
+} NodeList;
+
+bool parse_xml(const char *file_name, NodeList *node_list);
 
 #endif // XML_PARSER_H_
