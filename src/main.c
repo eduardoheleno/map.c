@@ -8,6 +8,13 @@
 
 const char *error;
 
+void test(Node *n)
+{
+    if (n->tags_size > 0) {
+        printf("%s: %s\n", n->tags[0]->k, n->tags[0]->v);
+    }
+}
+
 int main(void)
 {
     NodeList node_list;
@@ -29,11 +36,34 @@ int main(void)
         BeginDrawing();
             ClearBackground(BLACK);
 
+            Vector2 cur_mouse_pos = GetMousePosition();
+            Node *node_closer_to_mouse = NULL;
+
             for (size_t i = 0; i < node_list.size; i++) {
                 Node *n = node_list.nodes[i];
-
                 DrawPixel(n->x, n->y, WHITE);
+
+                if (node_closer_to_mouse == NULL) {
+                    node_closer_to_mouse = n;
+                } else {
+                    double distance = sqrt(
+                        pow((int)cur_mouse_pos.x - n->x, 2) +
+                        pow((int)cur_mouse_pos.y - n->y, 2)
+                    );
+                    double best_distance = sqrt(
+                        pow((int)cur_mouse_pos.x - node_closer_to_mouse->x, 2) +
+                        pow((int)cur_mouse_pos.y - node_closer_to_mouse->y, 2)
+                    );
+
+                    if (distance < best_distance && n->tags_size > 0) {
+                        node_closer_to_mouse = n;
+                    }
+                }
             }
+
+            DrawCircle(node_closer_to_mouse->x, node_closer_to_mouse->y, 5, BLUE);
+
+            test(node_closer_to_mouse);
 
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 if (base_mouse_pos == NULL) {
@@ -41,7 +71,6 @@ int main(void)
                     *base_mouse_pos = GetMousePosition();
                 }
 
-                Vector2 cur_mouse_pos = GetMousePosition();
                 for (size_t i = 0; i < node_list.size; i++) {
                     node_list.nodes[i]->x += (int)(cur_mouse_pos.x - base_mouse_pos->x);
                     node_list.nodes[i]->y += (int)(cur_mouse_pos.y - base_mouse_pos->y);

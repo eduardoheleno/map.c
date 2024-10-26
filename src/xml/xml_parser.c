@@ -1,9 +1,24 @@
 #include "xml/xml_parser.h"
 #include "libxml/tree.h"
 
+Tag *parse_tag(xmlNode *xml_node)
+{
+    Tag *t = malloc(sizeof(Tag));
+    char *k = (char*)xmlGetProp(xml_node, (const xmlChar*)"k");
+    char *v = (char*)xmlGetProp(xml_node, (const xmlChar*)"v");
+
+    t->k = k;
+    t->v = v;
+
+    return t;
+}
+
 Node *parse_node(xmlNode *xml_node)
 {
     Node *n = malloc(sizeof(Node));
+    n->tags = NULL;
+    n->tags_size = 0;
+
     char *id = (char*)xmlGetProp(xml_node, (const xmlChar*)"id");
     char *uid = (char*)xmlGetProp(xml_node, (const xmlChar*)"uid");
     char *lat = (char*)xmlGetProp(xml_node, (const xmlChar*)"lat");
@@ -27,8 +42,21 @@ Node *parse_node(xmlNode *xml_node)
     double fractional_x = modf(ux, &discart_integer);
     double fractional_y = modf(uy, &discart_integer);
 
-    n->x = (int)(fractional_x * 2000);
-    n->y = (int)(fractional_y * 2000);
+    n->x = (int)(fractional_x * 5000);
+    n->y = (int)(fractional_y * 5000);
+
+    if (xml_node->children != NULL) {
+        xmlNode *cur_children = xml_node->children;
+        while (cur_children != NULL) {
+            if (!xmlStrcmp(cur_children->name, (const xmlChar*)"tag")) {
+                Tag *t = parse_tag(cur_children);
+                n->tags = realloc(n->tags, sizeof(Tag*) * ++n->tags_size);
+                n->tags[n->tags_size - 1] = t;
+            }
+
+            cur_children = cur_children->next;
+        }
+    }
 
     return n;
 }
