@@ -4,14 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <string.h>
+#include <math.h>
 
-#include <string_utils.h>
+#include <libxml2/libxml/parser.h>
+#include <libxml2/libxml/tree.h>
 
-enum XmlType {
-    NODE,
-    UNKNOWN
-};
+#define E_RADIUS 6371.0
 
 typedef struct Tag {
     char *k;
@@ -23,6 +21,9 @@ typedef struct Node {
     unsigned long uid;
     double lat;
     double lon;
+
+    int x;
+    int y;
 
     Tag **tags;
     size_t tags_size;
