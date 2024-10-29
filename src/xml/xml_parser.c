@@ -110,7 +110,7 @@ Node *parse_node(xmlNode *xml_node)
     return n;
 }
 
-NodeL *insert_ordered_node(NodeL **last_inserted_node, NodeL **root_nodel, Node *node)
+NodeL *insert_ordered_node(NodeL **last_inserted_node, NodeL **root_nodel, Node *node, size_t *nodel_size)
 {
     if ((*last_inserted_node) == NULL) {
         (*last_inserted_node) = malloc(sizeof(NodeL));
@@ -120,6 +120,7 @@ NodeL *insert_ordered_node(NodeL **last_inserted_node, NodeL **root_nodel, Node 
 
         *root_nodel = *last_inserted_node;
 
+        (*nodel_size)++;
         return *last_inserted_node;
     }
 
@@ -136,6 +137,7 @@ NodeL *insert_ordered_node(NodeL **last_inserted_node, NodeL **root_nodel, Node 
                 cur_node->next->prev = nl;
                 cur_node->next = nl;
 
+                (*nodel_size)++;
                 return nl;
             }
 
@@ -146,6 +148,8 @@ NodeL *insert_ordered_node(NodeL **last_inserted_node, NodeL **root_nodel, Node 
         nl->prev = cur_node;
 
         cur_node->next = nl;
+
+        (*nodel_size)++;
         return nl;
     }
 
@@ -165,7 +169,29 @@ NodeL *insert_ordered_node(NodeL **last_inserted_node, NodeL **root_nodel, Node 
     nl->next = cur_node;
 
     cur_node->prev = nl;
+
+    (*nodel_size)++;
     return nl;
+}
+
+NodeList *create_node_list(NodeL *root_nodel, size_t nodel_size)
+{
+    NodeList *node_list = malloc(sizeof(NodeList));
+    node_list->nodes = malloc(sizeof(Node*) * nodel_size);
+    node_list->size = nodel_size;
+
+    for (size_t i = 0; i < node_list->size; i++) {
+        Node *n = root_nodel->node;
+        node_list->nodes[i] = n;
+
+        NodeL *cur_nodel = root_nodel;
+        root_nodel = root_nodel->next;
+
+        // is this make sense?
+        free(cur_nodel);
+    }
+
+    return node_list;
 }
 
 bool parse_xml(
@@ -182,20 +208,20 @@ bool parse_xml(
 
     NodeL *last_inserted_node = NULL;
     NodeL *root_nodel = NULL;
+    size_t nodel_size = 0;
 
     while (cur_element != NULL) {
         if (cur_element->type == XML_ELEMENT_NODE) {
             if (!xmlStrcmp(cur_element->name, (const xmlChar*)"node")) {
                 Node *n = parse_node(cur_element);
-                node_list->nodes = realloc(node_list->nodes, sizeof(Node*) * ++node_list->size);
-                node_list->nodes[node_list->size - 1] = n;
-
-                last_inserted_node = insert_ordered_node(&last_inserted_node, &root_nodel, n);
+                last_inserted_node = insert_ordered_node(&last_inserted_node, &root_nodel, n, &nodel_size);
             }
         }
 
         cur_element = cur_element->next;
     }
+
+    *node_list = *create_node_list(root_nodel, nodel_size);
 
     return true;
 }
