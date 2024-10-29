@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <raylib.h>
 
 #include "xml/xml_parser.h"
@@ -18,11 +19,15 @@ void test(Node *n)
 int main(void)
 {
     NodeList node_list;
+    WayList way_list;
+
     node_list.size = 0;
+    way_list.size = 0;
     node_list.nodes = NULL;
+    way_list.ways = NULL;
 
     const char *file_name = "data.xml";
-    if (!parse_xml(file_name, &node_list)) {
+    if (!parse_xml(file_name, &node_list, &way_list)) {
         error = "Couldn't load xml file";
         goto main_error;
     }
@@ -62,8 +67,15 @@ int main(void)
             }
 
             DrawCircle(node_closer_to_mouse->x, node_closer_to_mouse->y, 5, BLUE);
-
             test(node_closer_to_mouse);
+
+            // insert Node when preprocessing data
+            /* for (size_t i = 0; i < way_list.size; i++) { */
+            /*     Way *w = way_list.ways[i]; */
+            /*     for (size_t j = 0; j < w->nodes_size; j++) { */
+
+            /*     } */
+            /* } */
 
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 if (base_mouse_pos == NULL) {

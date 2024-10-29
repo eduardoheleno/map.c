@@ -29,11 +29,33 @@ typedef struct Node {
     size_t tags_size;
 } Node;
 
+typedef struct Way {
+    unsigned long id;
+    unsigned long uid;
+
+    Node **nodes;
+    size_t nodes_size;
+
+    Tag **tags;
+    size_t tags_size;
+} Way;
+
+typedef struct WayList {
+    Way **ways;
+    size_t size;
+} WayList;
+
 typedef struct NodeList {
     Node **nodes;
     size_t size;
 } NodeList;
 
-bool parse_xml(const char *file_name, NodeList *node_list);
+typedef struct NodeL {
+    Node *node;
+    struct NodeL *prev;
+    struct NodeL *next;
+} NodeL;
+
+bool parse_xml(const char *file_name, NodeList *node_list, WayList *way_list);
 
 #endif // XML_PARSER_H_
