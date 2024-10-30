@@ -9,7 +9,7 @@
 #include <libxml2/libxml/parser.h>
 #include <libxml2/libxml/tree.h>
 
-#define E_RADIUS 6371.0
+#define E_RADIUS 6378137
 
 typedef struct Tag {
     char *k;

@@ -11,8 +11,6 @@ void normalize_nodes(NodeList *node_list)
         node_list->nodes[i]->x -= sub_x;
         node_list->nodes[i]->y -= sub_y;
 
-        /* int y = node_list->nodes[i]->y; */
-        /* node_list->nodes[i]->y = -node_list->nodes[i]->x; */
-        /* node_list->nodes[i]->x = y; */
+        node_list->nodes[i]->y = -node_list->nodes[i]->y;
     }
 }

@@ -73,8 +73,11 @@ Node *parse_node(xmlNode *xml_node)
     n->lat = atof(lat);
     n->lon = atof(lon);
 
-    n->x = (int)(E_RADIUS * cos(n->lat) * cos(n->lon));
-    n->y = (int)(E_RADIUS * cos(n->lat) * sin(n->lon));
+    double lat_rad = n->lat * M_PI / 180;
+    double lon_rad = n->lon * M_PI / 180;
+
+    n->x = (int)(E_RADIUS * lon_rad);
+    n->y = (int)(E_RADIUS * log(tan((M_PI / 4) + (lat_rad / 2))));
 
     if (xml_node->children != NULL) {
         xmlNode *cur_children = xml_node->children;
