@@ -3,6 +3,7 @@
 #include <raylib.h>
 
 #include "xml/xml_parser.h"
+#include "utils.h"
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 1000
@@ -31,6 +32,8 @@ int main(void)
         error = "Couldn't load xml file";
         goto main_error;
     }
+
+    normalize_nodes(&node_list);
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Screen");
     SetTargetFPS(60);
@@ -66,16 +69,21 @@ int main(void)
                 }
             }
 
+            for (size_t i = 0; i < way_list.size; i++) {
+                Way *w = way_list.ways[i];
+                if (w->nodes_size > 0) {
+                    Node *cur_node = w->nodes[0];
+                    for (size_t j = 1; j < w->nodes_size; j++) {
+                        Node *dest_node = w->nodes[j];
+
+                        DrawLine(cur_node->x, cur_node->y, dest_node->x, dest_node->y, WHITE);
+                        cur_node = dest_node;
+                    }
+                }
+            }
+
             DrawCircle(node_closer_to_mouse->x, node_closer_to_mouse->y, 5, BLUE);
             test(node_closer_to_mouse);
-
-            // insert Node when preprocessing data
-            /* for (size_t i = 0; i < way_list.size; i++) { */
-            /*     Way *w = way_list.ways[i]; */
-            /*     for (size_t j = 0; j < w->nodes_size; j++) { */
-
-            /*     } */
-            /* } */
 
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 if (base_mouse_pos == NULL) {
