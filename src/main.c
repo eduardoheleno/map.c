@@ -9,6 +9,7 @@
 #define SCREEN_HEIGHT 1000
 
 const char *error;
+int map_zoom = 1;
 
 void test(Node *n)
 {
@@ -35,7 +36,7 @@ int main(void)
 
     normalize_nodes(&node_list);
 
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Screen");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Map");
     SetTargetFPS(60);
 
     Vector2 *base_mouse_pos = NULL;
@@ -44,12 +45,17 @@ int main(void)
         BeginDrawing();
             ClearBackground(BLACK);
 
+            float mouse_wheel = GetMouseWheelMove();
+            set_map_zoom(&map_zoom, mouse_wheel);
+
             Vector2 cur_mouse_pos = GetMousePosition();
             Node *node_closer_to_mouse = NULL;
 
             for (size_t i = 0; i < node_list.size; i++) {
                 Node *n = node_list.nodes[i];
-                DrawPixel(n->x, n->y, WHITE);
+                set_node_zoom(n, map_zoom, mouse_wheel);
+
+                DrawPixel((int)n->x, (int)n->y, WHITE);
 
                 if (node_closer_to_mouse == NULL) {
                     node_closer_to_mouse = n;
@@ -76,14 +82,16 @@ int main(void)
                     for (size_t j = 1; j < w->nodes_size; j++) {
                         Node *dest_node = w->nodes[j];
 
-                        DrawLine(cur_node->x, cur_node->y, dest_node->x, dest_node->y, WHITE);
+                        DrawLine((int)cur_node->x, (int)cur_node->y, (int)dest_node->x,
+                                (int)dest_node->y, WHITE);
                         cur_node = dest_node;
                     }
                 }
             }
 
-            DrawCircle(node_closer_to_mouse->x, node_closer_to_mouse->y, 5, BLUE);
-            test(node_closer_to_mouse);
+            DrawCircle((int)node_closer_to_mouse->x, (int)node_closer_to_mouse->y, 5,
+                       BLUE);
+            /* test(node_closer_to_mouse); */
 
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 if (base_mouse_pos == NULL) {

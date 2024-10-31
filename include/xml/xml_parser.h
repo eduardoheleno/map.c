@@ -22,8 +22,10 @@ typedef struct Node {
     double lat;
     double lon;
 
-    int x;
-    int y;
+    double x;
+    double y;
+
+    int zoom;
 
     Tag **tags;
     size_t tags_size;

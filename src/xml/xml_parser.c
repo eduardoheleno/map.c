@@ -62,6 +62,7 @@ Node *parse_node(xmlNode *xml_node)
     Node *n = malloc(sizeof(Node));
     n->tags = NULL;
     n->tags_size = 0;
+    n->zoom = 0;
 
     char *id = (char*)xmlGetProp(xml_node, (const xmlChar*)"id");
     char *uid = (char*)xmlGetProp(xml_node, (const xmlChar*)"uid");
@@ -76,8 +77,8 @@ Node *parse_node(xmlNode *xml_node)
     double lat_rad = n->lat * M_PI / 180;
     double lon_rad = n->lon * M_PI / 180;
 
-    n->x = (int)(E_RADIUS * lon_rad);
-    n->y = (int)(E_RADIUS * log(tan((M_PI / 4) + (lat_rad / 2))));
+    n->x = (E_RADIUS * lon_rad) / 10.0;
+    n->y = (E_RADIUS * log(tan((M_PI / 4) + (lat_rad / 2)))) / 10.0;
 
     if (xml_node->children != NULL) {
         xmlNode *cur_children = xml_node->children;
