@@ -62,7 +62,7 @@ Node *parse_node(xmlNode *xml_node)
     Node *n = malloc(sizeof(Node));
     n->tags = NULL;
     n->tags_size = 0;
-    n->zoom = 0;
+    n->zoom = 1;
 
     char *id = (char*)xmlGetProp(xml_node, (const xmlChar*)"id");
     char *uid = (char*)xmlGetProp(xml_node, (const xmlChar*)"uid");

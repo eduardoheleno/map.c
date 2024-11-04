@@ -82,8 +82,8 @@ int main(void)
                     for (size_t j = 1; j < w->nodes_size; j++) {
                         Node *dest_node = w->nodes[j];
 
-                        DrawLine((int)cur_node->x, (int)cur_node->y, (int)dest_node->x,
-                                (int)dest_node->y, WHITE);
+                        DrawLine((int)cur_node->x, (int)cur_node->y,
+                                 (int)dest_node->x, (int)dest_node->y, WHITE);
                         cur_node = dest_node;
                     }
                 }
@@ -91,7 +91,7 @@ int main(void)
 
             DrawCircle((int)node_closer_to_mouse->x, (int)node_closer_to_mouse->y, 5,
                        BLUE);
-            /* test(node_closer_to_mouse); */
+            test(node_closer_to_mouse);
 
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                 if (base_mouse_pos == NULL) {

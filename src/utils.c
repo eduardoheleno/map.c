@@ -1,5 +1,6 @@
 #include "utils.h"
 
+// TODO: normalize on creation
 void normalize_nodes(NodeList *node_list)
 {
     if (node_list->size == 0) exit(1);
@@ -19,23 +20,24 @@ void set_map_zoom(int *map_zoom, float mouse_wheel)
 {
     if (mouse_wheel != 0) {
         if (mouse_wheel > 0) {
-            *map_zoom += 1;
+            (*map_zoom)++;
         } else if (mouse_wheel < 0 && *map_zoom > 1) {
-            *map_zoom -= 1;
+            (*map_zoom)--;
         }
     }
 }
 
 void set_node_zoom(Node *node, int map_zoom, float mouse_wheel)
 {
-    if (node->zoom != (int)map_zoom) {
-        if (mouse_wheel > 0) {
-            node->x *= (int)map_zoom;
-            node->y *= (int)map_zoom;
-        } else {
-            node->x /= (int)map_zoom + 1;
-            node->y /= (int)map_zoom + 1;
-        }
-        node->zoom = (int)map_zoom;
+    if (mouse_wheel > 0 && node->zoom != map_zoom) {
+        node->x = (node->x / node->zoom) + node->x;
+        node->y = (node->y / node->zoom) + node->y;
+
+        node->zoom = map_zoom;
+    } else if (mouse_wheel < 0 && node->zoom != map_zoom) {
+        node->x = (node->x / node->zoom) - node->x;
+        node->y = (node->y / node->zoom) - node->y;
+
+        node->zoom = map_zoom;
     }
 }
