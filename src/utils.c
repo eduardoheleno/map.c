@@ -35,8 +35,8 @@ void set_node_zoom(Node *node, int map_zoom, float mouse_wheel)
 
         node->zoom = map_zoom;
     } else if (mouse_wheel < 0 && node->zoom != map_zoom) {
-        node->x = (node->x / node->zoom) - node->x;
-        node->y = (node->y / node->zoom) - node->y;
+        node->x = node->x - (node->x / node->zoom);
+        node->y = node->y - (node->y / node->zoom);
 
         node->zoom = map_zoom;
     }
