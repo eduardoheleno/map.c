@@ -2,7 +2,7 @@
 #include <string.h>
 #include <raylib.h>
 
-#include "xml/xml_parser.h"
+#include <xml/xml_parser.h>
 #include "utils.h"
 
 #define SCREEN_WIDTH 1000
